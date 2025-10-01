@@ -1,0 +1,95 @@
+# Example MTA descriptor for testing
+_schema_version: 3.3.0
+ID: sample-sap-app
+version: 1.0.0
+description: Sample SAP BTP Cloud Foundry application
+
+parameters:
+  enable-parallel-deployments: true
+
+modules:
+  - name: sample-app
+    type: nodejs
+    path: app/
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 512M
+    requires:
+      - name: sample-xsuaa
+      - name: sample-destination
+      - name: sample-connectivity
+    provides:
+      - name: sample-app-api
+        properties:
+          url: ${default-url}
+
+  - name: sample-approuter
+    type: approuter.nodejs
+    path: approuter/
+    parameters:
+      memory: 128M
+      disk-quota: 256M
+    requires:
+      - name: sample-xsuaa
+      - name: sample-app-api
+        group: destinations
+        properties:
+          name: backend
+          url: ~{url}
+          forwardAuthToken: true
+
+resources:
+  - name: sample-xsuaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      config:
+        xsappname: sample-app-${space}
+        tenant-mode: dedicated
+        scopes:
+          - name: $XSAPPNAME.read
+            description: Read access
+          - name: $XSAPPNAME.write
+            description: Write access
+        role-templates:
+          - name: Reader
+            description: Read only access
+            scope-references:
+              - $XSAPPNAME.read
+          - name: Writer
+            description: Read/Write access
+            scope-references:
+              - $XSAPPNAME.read
+              - $XSAPPNAME.write
+
+  - name: sample-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+              - Name: northwind
+                Description: Northwind OData service
+                URL: https://services.odata.org/V2/Northwind/Northwind.svc/
+                Type: HTTP
+                ProxyType: Internet
+                Authentication: NoAuthentication
+
+  - name: sample-connectivity
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite
+
+  - name: sample-logs
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: application-logs
+      service-plan: lite

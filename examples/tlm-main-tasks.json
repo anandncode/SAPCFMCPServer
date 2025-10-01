@@ -1,0 +1,69 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Parse MTA with MCP Server",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "/Users/I038020/_My_code/_MyPrograms/_Sync/MCPServer/SAP/CloudFoundry/scripts/mcp-cli.js",
+        "parse",
+        "${workspaceFolder}/mta.yaml"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MCP Server Tools Menu",
+      "type": "shell",
+      "command": "/Users/I038020/_My_code/_MyPrograms/_Sync/MCPServer/SAP/CloudFoundry/scripts/sap-cf-tools.sh",
+      "args": ["menu"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Get XSUAA Token",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "/Users/I038020/_My_code/_MyPrograms/_Sync/MCPServer/SAP/CloudFoundry/scripts/mcp-cli.js",
+        "token"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Query CF Resources",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "/Users/I038020/_My_code/_MyPrograms/_Sync/MCPServer/SAP/CloudFoundry/scripts/mcp-cli.js",
+        "cf-resources"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "sap-cf": {
+      "command": "node",
+      "args": ["./dist/index.js"],
+      "env": {
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
