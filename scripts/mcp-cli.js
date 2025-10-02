@@ -27,15 +27,9 @@ class MCPClient {
       stdio: ['pipe', 'pipe', 'inherit']
     });
 
-    return new Promise((resolve) => {
-      this.serverProcess.stdout.on('data', (data) => {
-        const output = data.toString();
-        if (output.includes('started successfully')) {
-          console.log('✅ MCP Server started successfully');
-          resolve();
-        }
-      });
-    });
+    // Give server a moment to start up
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('✅ MCP Server started successfully');
   }
 
   async sendRequest(method, params = {}) {
@@ -52,20 +46,39 @@ class MCPClient {
 
     return new Promise((resolve, reject) => {
       let responseData = '';
+      let responseReceived = false;
 
       const timeout = setTimeout(() => {
-        reject(new Error('Request timeout'));
-      }, 30000);
+        if (!responseReceived) {
+          console.error('❌ Request timeout. Response data received:', responseData.substring(0, 200));
+          reject(new Error('Request timeout'));
+        }
+      }, 10000);
 
       this.serverProcess.stdout.on('data', (data) => {
         responseData += data.toString();
-        try {
-          const response = JSON.parse(responseData);
-          clearTimeout(timeout);
-          resolve(response);
-        } catch (error) {
-          // Still receiving data
+
+        // Try to parse each line as a separate JSON response
+        const lines = responseData.split('\n');
+        for (let i = 0; i < lines.length - 1; i++) {
+          const line = lines[i].trim();
+          if (line) {
+            try {
+              const response = JSON.parse(line);
+              if (response.id === request.id) {
+                responseReceived = true;
+                clearTimeout(timeout);
+                resolve(response);
+                return;
+              }
+            } catch (error) {
+              // Not valid JSON, continue
+            }
+          }
         }
+
+        // Keep the last incomplete line
+        responseData = lines[lines.length - 1];
       });
 
       this.serverProcess.stdin.write(JSON.stringify(request) + '\n');
@@ -112,6 +125,13 @@ async function parseMTA(filePath) {
   try {
     await client.startServer();
 
+    // First get the list of tools
+    console.log('📋 Getting available tools...');
+    const toolsResponse = await client.sendRequest('tools/list', {});
+    console.log('🔧 Available tools:', toolsResponse.result?.tools?.map(t => t.name));
+
+    // Then call the parse_mta tool
+    console.log('⚙️ Calling parse_mta tool...');
     const response = await client.sendRequest('tools/call', {
       name: 'parse_mta',
       arguments: { filePath }

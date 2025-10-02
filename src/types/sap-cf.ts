@@ -3,7 +3,15 @@
 export interface MTAResource {
   name: string;
   type: string;
-  parameters?: Record<string, any>;
+  parameters?: {
+    service?: string;
+    'service-name'?: string;
+    'service-plan'?: string;
+    plan?: string;
+    service_plan?: string;
+    config?: Record<string, any>;
+    [key: string]: any;
+  };
   properties?: Record<string, any>;
   'properties-metadata'?: Record<string, any>;
 }
@@ -43,6 +51,11 @@ export interface MTADescriptor {
   parameters?: Record<string, any>;
   'module-types'?: Record<string, any>;
   'resource-types'?: Record<string, any>;
+  // Support alternative naming conventions found in BTP CF mta.yaml files
+  schema_version?: string;
+  'schema-version'?: string;
+  id?: string;
+  Id?: string;
 }
 
 export interface XSUAACredentials {

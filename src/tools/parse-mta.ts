@@ -46,37 +46,47 @@ export async function handleParseMTA(args: any): Promise<any> {
     // Parse the MTA descriptor
     const mta = await MTAParser.parseFromFile(filePath);
 
+    // Get detailed analysis
+    const analysis = MTAParser.analyzeStructure(mta);
+
     // Extract useful information
     const result = {
       success: true,
       data: {
-        metadata: {
-          id: mta.ID,
-          version: mta.version,
-          description: mta.description,
-          schemaVersion: mta._schema_version
-        },
+        metadata: analysis.metadata,
         modules: mta.modules.map(module => ({
           name: module.name,
           type: module.type,
           path: module.path,
           requires: module.requires?.map(req => req.name) || [],
-          provides: module.provides?.map(prov => prov.name) || []
+          provides: module.provides?.map(prov => prov.name) || [],
+          parameters: module.parameters
         })),
         resources: mta.resources.map(resource => ({
           name: resource.name,
           type: resource.type,
-          service: resource.parameters?.service,
-          servicePlan: resource.parameters?.['service-plan'] || resource.parameters?.plan,
+          service: resource.parameters?.service || resource.parameters?.['service-name'],
+          servicePlan: resource.parameters?.['service-plan'] || resource.parameters?.plan || resource.parameters?.['service_plan'],
           parameters: resource.parameters
         })),
+        analysis: {
+          counts: analysis.counts,
+          resourceTypes: analysis.resourceTypes,
+          moduleTypes: analysis.moduleTypes,
+          serviceResources: analysis.serviceResources
+        },
         summary: {
           totalModules: mta.modules.length,
           totalResources: mta.resources.length,
-          xsuaaResources: MTAParser.getXSUAAResources(mta).length,
+          xsuaaResources: analysis.xsuaaResources.length,
           serviceResources: MTAParser.getServiceResources(mta).length,
-          destinationResources: MTAParser.getDestinationResources(mta).length,
-          connectivityResources: MTAParser.getConnectivityResources(mta).length
+          destinationResources: analysis.destinationResources.length,
+          connectivityResources: analysis.connectivityResources.length
+        },
+        detectedServices: {
+          xsuaa: analysis.xsuaaResources,
+          destination: analysis.destinationResources,
+          connectivity: analysis.connectivityResources
         }
       }
     };
