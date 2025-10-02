@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "sap-cf": {
+      "command": "node",
+      "args": ["/Users/I038020/_My_code/SAPCFMCPServer/dist/index.js"],
+      "env": {
+        "LOG_LEVEL": "error"
+      }
+    }
+  }
+}

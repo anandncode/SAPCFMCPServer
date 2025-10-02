@@ -223,9 +223,9 @@ export class MTAParser {
       throw new Error('Invalid MTA descriptor: not a valid object');
     }
 
-    // Schema version - be flexible with variations
-    if (!mta._schema_version && !mta.schema_version && !mta['schema-version']) {
-      throw new Error('Missing schema version in MTA descriptor (expected _schema_version, schema_version, or schema-version)');
+    // Schema version - be flexible with variations (including _schema-version with hyphen)
+    if (!mta._schema_version && !mta.schema_version && !mta['schema-version'] && !mta['_schema-version']) {
+      throw new Error('Missing schema version in MTA descriptor (expected _schema_version, schema_version, schema-version, or _schema-version)');
     }
 
     // ID field - be flexible with case variations
@@ -256,7 +256,7 @@ export class MTAParser {
 
     // Normalize the schema version field
     if (!mta._schema_version) {
-      mta._schema_version = mta.schema_version || mta['schema-version'];
+      mta._schema_version = mta.schema_version || mta['schema-version'] || mta['_schema-version'];
     }
 
     // Normalize the ID field

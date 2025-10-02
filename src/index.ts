@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// Set MCP server mode to disable console logging (MCP protocol uses stdio)
+process.env.MCP_SERVER_MODE = 'true';
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {

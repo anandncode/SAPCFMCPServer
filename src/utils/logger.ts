@@ -63,8 +63,11 @@ export const logger = winston.createLogger({
   ],
 });
 
-// If we're not in production, log to the console with detailed error format
-if (process.env.NODE_ENV !== 'production') {
+// Only log to console if we're not running as an MCP server (which uses stdio for protocol communication)
+// and not in production. The MCP protocol requires clean stdio channels.
+const isMCPServer = process.argv[1]?.includes('index.js') || process.env.MCP_SERVER_MODE === 'true';
+
+if (process.env.NODE_ENV !== 'production' && !isMCPServer) {
   logger.add(new winston.transports.Console({
     format: winston.format.combine(
       winston.format.colorize(),

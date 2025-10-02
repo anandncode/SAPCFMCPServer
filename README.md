@@ -36,10 +36,15 @@ cd /path/to/your-sap-project
 
 ### **VS Code + GitHub Copilot Integration**
 ```bash
-# Copy tasks and instructions to your project
+# Copy MCP configuration to your project
+cp examples/vscode-mcp.json /path/to/your-project/.vscode/mcp.json
+
+# Copy tasks and instructions to your project (optional)
 cp examples/tlm-main-tasks.json /path/to/your-project/.vscode/tasks.json
 cp examples/.copilot-instructions-tlm.md /path/to/your-project/.copilot-instructions.md
 ```
+
+**Note:** The MCP server automatically disables console logging when running in MCP mode to prevent interference with the stdio-based MCP protocol. All logs are written to files (`combined.log`, `error.log`) for debugging purposes.
 
 ## 🔧 **MCP Tools Available**
 

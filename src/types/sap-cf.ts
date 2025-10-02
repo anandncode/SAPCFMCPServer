@@ -54,6 +54,7 @@ export interface MTADescriptor {
   // Support alternative naming conventions found in BTP CF mta.yaml files
   schema_version?: string;
   'schema-version'?: string;
+  '_schema-version'?: string;
   id?: string;
   Id?: string;
 }
