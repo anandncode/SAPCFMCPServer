@@ -8,6 +8,21 @@
 			"isBackground": true,
 			"problemMatcher": [],
 			"group": "build"
+		},
+		{
+			"label": "Watch MCP Server Activity",
+			"type": "shell",
+			"command": "tail",
+			"args": ["-f", "${workspaceFolder}/combined.log"],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"showReuseMessage": true,
+				"clear": false
+			}
 		}
 	]
 }
