@@ -18,6 +18,16 @@ import {
   handleGetAccessToken,
   getCFResourcesTool,
   handleGetCFResources,
+  getServiceBindingTool,
+  handleGetServiceBinding,
+  uploadOpenAPISpecTool,
+  handleUploadOpenAPISpec,
+  callAPITool,
+  handleCallAPI,
+  listAPISpecsTool,
+  handleListAPISpecs,
+  getAPIOperationsTool,
+  handleGetAPIOperations,
 } from './tools/index.js';
 
 class SAPCFMCPServer {
@@ -47,6 +57,11 @@ class SAPCFMCPServer {
           parseMTATool,
           getAccessTokenTool,
           getCFResourcesTool,
+          getServiceBindingTool,
+          uploadOpenAPISpecTool,
+          callAPITool,
+          listAPISpecsTool,
+          getAPIOperationsTool,
         ],
       };
     });
@@ -83,6 +98,56 @@ class SAPCFMCPServer {
                 {
                   type: 'text',
                   text: JSON.stringify(await handleGetCFResources(args), null, 2),
+                },
+              ],
+            };
+
+          case 'get_service_binding':
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(await handleGetServiceBinding(args), null, 2),
+                },
+              ],
+            };
+
+          case 'upload_openapi_spec':
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(await handleUploadOpenAPISpec(args), null, 2),
+                },
+              ],
+            };
+
+          case 'call_api':
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(await handleCallAPI(args), null, 2),
+                },
+              ],
+            };
+
+          case 'list_api_specs':
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(await handleListAPISpecs(args), null, 2),
+                },
+              ],
+            };
+
+          case 'get_api_operations':
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(await handleGetAPIOperations(args), null, 2),
                 },
               ],
             };

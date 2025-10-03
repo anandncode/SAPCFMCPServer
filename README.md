@@ -48,9 +48,37 @@ cp examples/.copilot-instructions-tlm.md /path/to/your-project/.copilot-instruct
 
 ## 🔧 **MCP Tools Available**
 
+### **Core MTA & CF Tools**
 1. **`parse_mta`** - Parse MTA descriptor files and extract all resource/module information
 2. **`get_access_token`** - Get OAuth2 tokens from XSUAA service with caching and validation
 3. **`get_cf_resources`** - Query Cloud Foundry API for apps, services, spaces, organizations
+
+### **NEW: Service Binding & API Integration Tools**
+4. **`get_service_binding`** - Get CF service binding parameters and credentials
+5. **`upload_openapi_spec`** - Register OpenAPI specifications for generic API calls
+6. **`call_api`** - Make authenticated API calls using registered OpenAPI specs
+7. **`list_api_specs`** - List all registered OpenAPI specifications
+8. **`get_api_operations`** - Show available operations for a registered API spec
+
+## 🚀 **Enhanced Workflow: From MTA to API Calls**
+
+### **Complete SAP BTP Development Workflow**
+```bash
+# 1. Parse your MTA file to identify services
+npm run mcp:parse ./mta.yaml
+
+# 2. Login to CF (prerequisite)
+cf login
+
+# 3. Get service binding for any service (e.g., bookshop-db)
+# Use MCP tool: get_service_binding with serviceName: "bookshop-db"
+
+# 4. Upload OpenAPI spec for any SAP service
+# Use MCP tool: upload_openapi_spec with Service Manager, Destination, etc.
+
+# 5. Make authenticated API calls
+# Use MCP tool: call_api with automatic token handling
+```
 
 ## VS Code & GitHub Copilot Integration
 

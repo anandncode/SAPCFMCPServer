@@ -1,0 +1,216 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SAP Service Manager API",
+    "description": "API for managing SAP BTP services",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://service-manager.cfapps.sap.hana.ondemand.com",
+      "description": "Service Manager API"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/service_instances": {
+      "get": {
+        "operationId": "listServiceInstances",
+        "summary": "List service instances",
+        "description": "Retrieve all service instances",
+        "parameters": [
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Number of items to return",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "description": "Pagination token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of service instances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ServiceInstance"
+                      }
+                    },
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createServiceInstance",
+        "summary": "Create service instance",
+        "description": "Create a new service instance",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateServiceInstanceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Service instance created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceInstance"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/service_instances/{instanceId}": {
+      "get": {
+        "operationId": "getServiceInstance",
+        "summary": "Get service instance",
+        "description": "Retrieve a specific service instance",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "required": true,
+            "description": "Service instance ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service instance details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceInstance"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteServiceInstance",
+        "summary": "Delete service instance",
+        "description": "Delete a specific service instance",
+        "parameters": [
+          {
+            "name": "instanceId",
+            "in": "path",
+            "required": true,
+            "description": "Service instance ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service instance deleted successfully"
+          }
+        }
+      }
+    },
+    "/v1/service_bindings": {
+      "get": {
+        "operationId": "listServiceBindings",
+        "summary": "List service bindings",
+        "description": "Retrieve all service bindings",
+        "responses": {
+          "200": {
+            "description": "List of service bindings"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "ServiceInstance": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "service_plan_id": {
+            "type": "string"
+          },
+          "platform_id": {
+            "type": "string"
+          },
+          "context": {
+            "type": "object"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateServiceInstanceRequest": {
+        "type": "object",
+        "required": ["name", "service_plan_id"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "service_plan_id": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "object"
+          },
+          "context": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}
