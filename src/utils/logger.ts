@@ -65,25 +65,16 @@ export const logger = winston.createLogger({
 
 // Only log to console if we're not running as an MCP server (which uses stdio for protocol communication)
 // and not in production. The MCP protocol requires clean stdio channels.
-// However, when MCP_DEBUG is enabled, we allow console output for debugging purposes.
 const isMCPServer = process.argv[1]?.includes('index.js') || process.env.MCP_SERVER_MODE === 'true';
-const debugMode = process.env.MCP_DEBUG === 'true';
 
-if ((process.env.NODE_ENV !== 'production' && !isMCPServer) || debugMode) {
-  const consoleTransport = new winston.transports.Console({
+if (process.env.NODE_ENV !== 'production' && !isMCPServer) {
+  logger.add(new winston.transports.Console({
     format: winston.format.combine(
       winston.format.colorize(),
       winston.format.timestamp({ format: 'HH:mm:ss' }),
       errorFormat
     )
-  });
-
-  // In debug mode, we write console logs to stderr to avoid interfering with MCP protocol on stdout
-  if (debugMode && isMCPServer) {
-    consoleTransport.stderrLevels = ['error', 'warn', 'info', 'verbose', 'debug', 'silly'];
-  }
-
-  logger.add(consoleTransport);
+  }));
 }
 
 // Add detailed debug file logging when MCP_DEBUG is enabled
@@ -97,9 +88,6 @@ if (process.env.MCP_DEBUG === 'true') {
       winston.format.prettyPrint()
     )
   }));
-
-  // Also set the logger level to debug to capture all debug messages
-  logger.level = 'debug';
 }
 
 // Helper function to log errors with full details

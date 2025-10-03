@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "sap-cf-debug": {
-      "command": "/Users/I038020/_My_code/SAPCFMCPServer/scripts/mcp-debug-wrapper.sh",
-      "args": [],
+      "command": "node",
+      "args": ["/Users/I038020/_My_code/SAPCFMCPServer/dist/index.js"],
       "env": {
         "LOG_LEVEL": "debug",
         "MCP_DEBUG": "true"

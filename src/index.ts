@@ -187,12 +187,6 @@ class SAPCFMCPServer {
 
     logger.info('SAP CF MCP Server started successfully');
 
-    // Log debug mode status
-    if (process.env.MCP_DEBUG === 'true') {
-      logger.debug('Debug mode enabled - verbose logging active');
-      logger.debug(`Environment: NODE_ENV=${process.env.NODE_ENV}, LOG_LEVEL=${process.env.LOG_LEVEL}`);
-    }
-
     // Handle process signals
     process.on('SIGINT', async () => {
       logger.info('Received SIGINT, shutting down gracefully');
