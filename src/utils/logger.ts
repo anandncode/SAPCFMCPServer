@@ -77,19 +77,6 @@ if (process.env.NODE_ENV !== 'production' && !isMCPServer) {
   }));
 }
 
-// Add detailed debug file logging when MCP_DEBUG is enabled
-if (process.env.MCP_DEBUG === 'true') {
-  logger.add(new winston.transports.File({
-    filename: 'mcp-debug.log',
-    level: 'debug',
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.json(),
-      winston.format.prettyPrint()
-    )
-  }));
-}
-
 // Helper function to log errors with full details
 export const logError = (message: string, error: unknown, additionalContext?: Record<string, any>) => {
   const errorDetails: Record<string, any> = { ...additionalContext };

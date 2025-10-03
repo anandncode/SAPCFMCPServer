@@ -70,13 +70,6 @@ class SAPCFMCPServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
 
-      // Debug logging for MCP tool calls
-      logger.info('MCP tool called', {
-        toolName: name,
-        requestId: request.params.id,
-        args: process.env.MCP_DEBUG === 'true' ? args : Object.keys(args || {})
-      });
-
       try {
         switch (name) {
           case 'parse_mta':
