@@ -1,0 +1,2187 @@
+{
+  "id": "hana-multitenancy-api",
+  "name": "HANA Cloud Multitenancy API",
+  "description": "SAP HANA Cloud Tenant Management Service provides APIs to manage tenants, containers, and credentials",
+  "spec": {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Tenant Management Service",
+      "description": "SAP HANA Cloud Tenant Management Service provides a set of APIs to manage tenants in SAP HANA Cloud. The APIs allow you to create, update, delete, and list tenants, containers, and credentials. The APIs also allow you to run operations on tenants.",
+      "version": "2.0.24"
+    },
+    "externalDocs": {
+      "description": "SAP HANA Cloud Tenant Management Service API",
+      "url": "https://help.sap.com/docs/hana-cloud/sap-hana-cloud-multitenancy-guide-internal/introducing-sap-hana-cloud-multitenancy"
+    },
+    "x-sap-hana-scope": "Public",
+    "x-sap-shortText": "APIs to manage SAP HANA Cloud Multi-Tenancy",
+    "x-sap-stateInfo": {
+      "state": "Active"
+    },
+    "servers": [
+      {
+        "url": "https://api.gateway.orchestration.{region}.hanacloud.ondemand.com",
+        "description": "SAP HANA Cloud Tenant Management Service Service REST API endpoint",
+        "variables": {
+          "region": {
+            "description": "Landscape region",
+            "default": "prod-eu10",
+            "enum": [
+              "prod-ap10",
+              "prod-ap11",
+              "prod-ap12",
+              "prod-br10",
+              "prod-ca10",
+              "prod-eu10",
+              "prod-eu11",
+              "prod-jp10",
+              "prod-us10",
+              "prod-ap20",
+              "prod-ap21",
+              "prod-eu20",
+              "prod-jp20",
+              "prod-us20",
+              "prod-us21",
+              "prod-us30",
+              "prod-eu30",
+              "prod-in30",
+              "hc-gcp-nl1",
+              "hc-ch20",
+              "hc-cn40",
+              "hc-cc-de1",
+              "hc-cc-us1"
+            ]
+          }
+        }
+      }
+    ],
+    "paths": {
+      "/tenants/v2/tenants": {
+        "get": {
+          "tags": [
+            "Tenant"
+          ],
+          "summary": "Search tenants",
+          "description": "Collection API to list tenant instances. This api supports eventual consistency, which means that changes of tenants may be delayed from being updated to the list.  It may contain stale values. For strong consistency, the Get tenant API that returns a single tenant must be used.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Read",
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "in": "query",
+              "name": "serviceInstanceID",
+              "description": "Lists the status of tenant instances associated with the given HANA service instance ID",
+              "schema": {
+                "type": "string"
+              },
+              "required": true
+            },
+            {
+              "in": "query",
+              "name": "$skiptoken",
+              "description": "A continuous token used to retrieve the next page.",
+              "schema": {
+                "type": "string"
+              },
+              "required": false
+            },
+            {
+              "in": "query",
+              "name": "$top",
+              "description": "A maximum number of tenants returned in the response. By default it returns up to 1,000 tenants. Returned tenants might be equal to 1,000 or fewer than 1,000 but it'll never contain more",
+              "schema": {
+                "type": "integer",
+                "default": 1000
+              },
+              "required": false
+            },
+            {
+              "in": "query",
+              "name": "$count",
+              "description": "The decision whether to include the tenant number in the response",
+              "schema": {
+                "type": "boolean",
+                "default": false
+              },
+              "required": false
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "properties": {
+                      "$skiptoken": {
+                        "description": "A tenant name where you want to start listing from",
+                        "type": "string"
+                      },
+                      "count": {
+                        "description": "Count of all tenants",
+                        "type": "integer"
+                      },
+                      "data": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/Tenant"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "Tenant"
+          ],
+          "summary": "Create tenant",
+          "description": "Creates a new tenant instance with HANA service instance id. Users can create multiple tenants in parallel by sending multiple requests at the same time, but the parallel acceptable requests are limited around 10 requests. URL of the tenant instance being created will be returned via HTTP header `Location`, and users can check the status of creation request by calling `GET {Location}`. `serviceInstanceID` in the request body must be a valid HANA service instance id that already exists. Otherwise, the API will return HTTP status code `400 Bad Request`.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantCreateRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the created tenant"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "403": {
+              "$ref": "#/components/responses/403"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        }
+      },
+      "/tenants/v2/tenants/{tenantID}": {
+        "parameters": [
+          {
+            "name": "tenantID",
+            "in": "path",
+            "required": true,
+            "description": "Tenant ID",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Tenant"
+          ],
+          "summary": "Get tenant",
+          "description": "Gets the tenant and its status. An HTTP header `ETag` is returned to support optimistic concurrency control.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Read",
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "in": "header",
+              "name": "If-None-Match",
+              "schema": {
+                "type": "string"
+              },
+              "required": false,
+              "description": "ETag value from a previous GET response. If matches the current resource version, returns 304."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {
+                "ETag": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "Entity tag for optimistic concurrency control"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Tenant"
+                  }
+                }
+              }
+            },
+            "304": {
+              "$ref": "#/components/responses/304"
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "put": {
+          "tags": [
+            "Tenant"
+          ],
+          "summary": "Create or update tenant",
+          "description": "If a tenant with the given tenant id already exists under the given HANA service instance, updates the existing one with given data in the request body. If no tenant with the tenant id exists, creates a new tenant instance with the given tenant id and HANA service instance id. If a tenant with the tenant id already exists under another HANA service instance, the API will return HTTP status code `400 Bad Request`.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "If-Match",
+              "in": "header",
+              "description": "Entity tag for optimistic concurrency control",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantCreateRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the created or updated tenant"
+                }
+              }
+            },
+            "204": {
+              "description": "No Content. Indicates that there is nothing to update for the existing tenant.",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the target tenant"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "403": {
+              "$ref": "#/components/responses/403"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "delete": {
+          "tags": [
+            "Tenant"
+          ],
+          "summary": "Delete tenant",
+          "description": "Deletes a tenant instance. Users can delete multiple tenants in parallel by sending multiple requests at the same time. URL of the tenant instance being deleted will be returned via HTTP header `Location`, and users can check the status of deletion request by calling `GET {Location}`.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "If-Match",
+              "in": "header",
+              "description": "Entity tag for optimistic concurrency control",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the deleted tenant"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        }
+      },
+      "/tenants/v2/tenants/{tenantID}/containers/": {
+        "get": {
+          "tags": [
+            "Container"
+          ],
+          "summary": "Get tenant containers",
+          "description": "Collection API to list containers belongs to the tenant. An HTTP header `ETag` is returned to support optimistic concurrency control.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Read",
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "tenantID",
+              "in": "path",
+              "required": true,
+              "description": "Tenant ID",
+              "schema": {
+                "type": "string",
+                "format": "string"
+              }
+            },
+            {
+              "in": "header",
+              "name": "If-None-Match",
+              "schema": {
+                "type": "string"
+              },
+              "required": false,
+              "description": "ETag value from a previous GET response. If matches the current resource version, returns 304."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {
+                "ETag": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "Entity tag for optimistic concurrency control"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "properties": {
+                      "data": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/Container"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "304": {
+              "$ref": "#/components/responses/304"
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "Container"
+          ],
+          "summary": "Create tenant container",
+          "description": "Creates a new container for the tenant. The URL of the created container will be returned via the HTTP header `Location`, and users can check the status of the creation request by calling `GET {Location}`.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "tenantID",
+              "in": "path",
+              "required": true,
+              "description": "Tenant ID",
+              "schema": {
+                "type": "string",
+                "format": "string"
+              }
+            },
+            {
+              "name": "If-Match",
+              "in": "header",
+              "description": "Entity tag for optimistic concurrency control",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContainerCreateRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the created container"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        }
+      },
+      "/tenants/v2/tenants/{tenantID}/containers/{containerID}": {
+        "parameters": [
+          {
+            "name": "tenantID",
+            "in": "path",
+            "required": true,
+            "description": "Tenant ID",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          {
+            "name": "containerID",
+            "in": "path",
+            "required": true,
+            "description": "Container ID",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Container"
+          ],
+          "summary": "Get tenant container",
+          "description": "Get the container details. An HTTP header `ETag` is returned to support optimistic concurrency control.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Read",
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "in": "header",
+              "name": "If-None-Match",
+              "schema": {
+                "type": "string"
+              },
+              "required": false,
+              "description": "ETag value from a previous GET response. If matches the current resource version, returns 304."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {
+                "ETag": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "Entity tag for optimistic concurrency control"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Container"
+                  }
+                }
+              }
+            },
+            "304": {
+              "$ref": "#/components/responses/304"
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "put": {
+          "tags": [
+            "Container"
+          ],
+          "summary": "Create or update tenant container",
+          "description": "If a container with the given container id already exists under the tenant, updates the existing one with given data in the request body. Otherwise, creates a new container with the container id under the tenant.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "tenantID",
+              "in": "path",
+              "required": true,
+              "description": "Tenant ID",
+              "schema": {
+                "type": "string",
+                "format": "string"
+              }
+            },
+            {
+              "name": "containerID",
+              "in": "path",
+              "required": true,
+              "description": "Container ID",
+              "schema": {
+                "type": "string",
+                "format": "string"
+              }
+            },
+            {
+              "name": "If-Match",
+              "in": "header",
+              "description": "Entity tag for optimistic concurrency control",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContainerCreateRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the created or updated container"
+                }
+              }
+            },
+            "204": {
+              "description": "No Content. Indicates that there is nothing to update for the existing container.",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the target container"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "delete": {
+          "tags": [
+            "Container"
+          ],
+          "summary": "Delete tenant container",
+          "description": "Deletes a container. URL of the container being deleted will be returned via HTTP header `Location`, and users can check the status of deletion request by calling `GET {Location}`.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "If-Match",
+              "in": "header",
+              "description": "Entity tag for optimistic concurrency control",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the deleted container"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        }
+      },
+      "/tenants/v2/tenants/{tenantID}/containers/{containerID}/credentials": {
+        "parameters": [
+          {
+            "name": "tenantID",
+            "in": "path",
+            "required": true,
+            "description": "Tenant ID",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          {
+            "name": "containerID",
+            "in": "path",
+            "required": true,
+            "description": "Container ID",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Credential"
+          ],
+          "summary": "Get container credentials",
+          "description": "Collection API to list credentials belongs to the container. An HTTP header `ETag` is returned to support optimistic concurrency control.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Read",
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "in": "header",
+              "name": "If-None-Match",
+              "schema": {
+                "type": "string"
+              },
+              "required": false,
+              "description": "ETag value from a previous GET response. If matches the current resource version, returns 304."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {
+                "ETag": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "Entity tag for optimistic concurrency control"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "properties": {
+                      "data": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/Credential"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "304": {
+              "$ref": "#/components/responses/304"
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "Credential"
+          ],
+          "summary": "Create container credential",
+          "description": "Creates a new credential for the container. URL of the credential being created will be returned via HTTP header `Location`, and users can check the status of creation request by calling `GET {Location}`. The parameters `permissions` and `roles` are only allowed for hdi type container.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "If-Match",
+              "in": "header",
+              "description": "Entity tag for optimistic concurrency control",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredentialCreateRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the created credential"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        }
+      },
+      "/tenants/v2/tenants/{tenantID}/containers/{containerID}/credentials/{credentialID}": {
+        "parameters": [
+          {
+            "name": "tenantID",
+            "in": "path",
+            "required": true,
+            "description": "Tenant ID",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          {
+            "name": "containerID",
+            "in": "path",
+            "required": true,
+            "description": "Container ID",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          {
+            "name": "credentialID",
+            "in": "path",
+            "required": true,
+            "description": "Credential ID",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        ],
+        "get": {
+          "tags": [
+            "Credential"
+          ],
+          "summary": "Get container credential",
+          "description": "Get the credential details. An HTTP header `ETag` is returned to support optimistic concurrency control.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Read",
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "in": "header",
+              "name": "If-None-Match",
+              "schema": {
+                "type": "string"
+              },
+              "required": false,
+              "description": "ETag value from a previous GET response. If matches the current resource version, returns 304."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Credential"
+                  }
+                }
+              }
+            },
+            "304": {
+              "$ref": "#/components/responses/304"
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "put": {
+          "tags": [
+            "Credential"
+          ],
+          "summary": "Create or update container credential",
+          "description": "If a credential with the given credential id already exists under the container, updates the existing one with given data in the request body. Otherwise, creates a new credential with the credential id under the container.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "tenantID",
+              "in": "path",
+              "required": true,
+              "description": "Tenant ID",
+              "schema": {
+                "type": "string",
+                "format": "string"
+              }
+            },
+            {
+              "name": "containerID",
+              "in": "path",
+              "required": true,
+              "description": "Container ID",
+              "schema": {
+                "type": "string",
+                "format": "string"
+              }
+            },
+            {
+              "name": "credentialID",
+              "in": "path",
+              "required": true,
+              "description": "Credential ID",
+              "schema": {
+                "type": "string",
+                "format": "string"
+              }
+            },
+            {
+              "name": "If-Match",
+              "in": "header",
+              "description": "Entity tag for optimistic concurrency control",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredentialCreateRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the created or updated credential"
+                }
+              }
+            },
+            "204": {
+              "description": "No Content. Indicates that there is nothing to update for the existing credential.",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the target credential"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "delete": {
+          "tags": [
+            "Credential"
+          ],
+          "summary": "Delete container credential",
+          "description": "Deletes a credential. URL of the credential being deleted will be returned via HTTP header `Location`, and users can check the status of deletion request by calling `GET {Location}`.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "If-Match",
+              "in": "header",
+              "description": "Entity tag for optimistic concurrency control",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the deleted credential"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        }
+      },
+      "/tenants/v2/operations": {
+        "get": {
+          "tags": [
+            "Operation"
+          ],
+          "summary": "List operations",
+          "description": "Collection API to list operations. An HTTP header `ETag` is returned to support optimistic concurrency control when tenantID specified",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Read",
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "in": "query",
+              "name": "tenantID",
+              "description": "Tenant ID",
+              "schema": {
+                "type": "string"
+              },
+              "required": false
+            },
+            {
+              "in": "header",
+              "name": "If-None-Match",
+              "schema": {
+                "type": "string"
+              },
+              "required": false,
+              "description": "ETag value from a previous GET response. If matches the current resource version, returns 304. It works when tenantID specified"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {
+                "ETag": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "An identifier for a specific version of the resource"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "properties": {
+                      "data": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/Operation"
+                        },
+                        "example": [
+                          {
+                            "id": "string",
+                            "name": "recovery",
+                            "status": {
+                              "startTimestamp": "2024-11-15T17:35:50.821Z",
+                              "endTimestamp": "2024-11-15T17:35:50.821Z",
+                              "description": "string",
+                              "state": "STARTING",
+                              "error": {
+                                "code": "string",
+                                "message": "string"
+                              }
+                            },
+                            "parameter": {
+                              "tenantID": "string",
+                              "targetTimestamp": "string"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "304": {
+              "$ref": "#/components/responses/304"
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "Operation"
+          ],
+          "summary": "Start operation",
+          "description": "Run an operation on the tenant. URL of the operation being created will be returned via HTTP header `Location`, and users can check the status of operation request by calling `GET {Location}`.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "If-Match",
+              "in": "header",
+              "description": "Entity tag for optimistic concurrency control",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationRequest"
+                },
+                "examples": {
+                  "validRecoveryRequest": {
+                    "$ref": "#/components/examples/ValidRecoveryRequest"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "202": {
+              "description": "Accepted",
+              "headers": {
+                "Location": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "The URL of the operation"
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "403": {
+              "$ref": "#/components/responses/403"
+            },
+            "409": {
+              "$ref": "#/components/responses/409"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        }
+      },
+      "/tenants/v2/operations/{operationID}": {
+        "parameters": [
+          {
+            "name": "operationID",
+            "in": "path",
+            "required": true,
+            "description": "Operation ID",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tenantID",
+            "description": "Tenant ID",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "If-None-Match",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "ETag value from a previous GET response. If matches the current resource version, returns 304."
+          }
+        ],
+        "get": {
+          "tags": [
+            "Operation"
+          ],
+          "summary": "Get operation status",
+          "description": "Get the operation status. An HTTP header `ETag` is returned to support optimistic concurrency control.",
+          "security": [
+            {
+              "OAuth2": [
+                "Tenant.Read",
+                "Tenant.Manage"
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "in": "header",
+              "name": "If-None-Match",
+              "schema": {
+                "type": "string"
+              },
+              "required": false,
+              "description": "ETag value from a previous GET response. If matches the current resource version, returns 304."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {
+                "ETag": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "An identifier for a specific version of the resource"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Operation"
+                  }
+                }
+              }
+            },
+            "304": {
+              "$ref": "#/components/responses/304"
+            },
+            "400": {
+              "$ref": "#/components/responses/400"
+            },
+            "401": {
+              "$ref": "#/components/responses/401"
+            },
+            "404": {
+              "$ref": "#/components/responses/404"
+            },
+            "429": {
+              "$ref": "#/components/responses/429"
+            },
+            "500": {
+              "$ref": "#/components/responses/500"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "OAuth2": {
+          "type": "oauth2",
+          "flows": {
+            "clientCredentials": {
+              "tokenUrl": "https://{uaarul}/oauth/token",
+              "scopes": {
+                "Tenant.Read": "Read tenants and their containers and credentials",
+                "Tenant.Manage": "Read, create, update, and delete tenants and their containers and credentials"
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "304": {
+          "description": "Not Modified"
+        },
+        "400": {
+          "description": "Bad Request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              },
+              "examples": {
+                "error": {
+                  "$ref": "#/components/examples/errorGeneral"
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Unauthorized",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              },
+              "examples": {
+                "error": {
+                  "$ref": "#/components/examples/errorGeneral"
+                }
+              }
+            }
+          }
+        },
+        "403": {
+          "description": "Forbidden",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              },
+              "examples": {
+                "error": {
+                  "$ref": "#/components/examples/errorGeneral"
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "Not Found",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              },
+              "examples": {
+                "error": {
+                  "$ref": "#/components/examples/errorGeneral"
+                }
+              }
+            }
+          }
+        },
+        "409": {
+          "description": "Conflict",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              },
+              "examples": {
+                "error": {
+                  "$ref": "#/components/examples/errorGeneral"
+                }
+              }
+            }
+          }
+        },
+        "429": {
+          "description": "Too Many Requests",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              },
+              "examples": {
+                "error": {
+                  "$ref": "#/components/examples/errorGeneral"
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Internal Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              },
+              "examples": {
+                "error": {
+                  "$ref": "#/components/examples/errorGeneral"
+                }
+              }
+            }
+          }
+        }
+      },
+      "schemas": {
+        "ContainerCreateRequest": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "The type of the container. A container can be either 'hdi' or 'schema'",
+              "enum": [
+                "hdi",
+                "schema"
+              ]
+            },
+            "name": {
+              "type": "string",
+              "format": "string",
+              "description": "The container (schema/hdi-container) name. This name must be unique in a single tenant instance."
+            },
+            "makeUniqueName": {
+              "type": "boolean",
+              "description": "A flag indicating whether to make the container name unique by appending a numerical suffix (e.g., _1, _2, etc.). When this flag is True, container 'name' must be given. The unique name is used internally, so the original given name is returned in the response."
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "TenantCreateRequest": {
+          "type": "object",
+          "properties": {
+            "serviceInstanceID": {
+              "type": "string",
+              "format": "string",
+              "description": "HANA Cloud Instance ID"
+            },
+            "dataEncryption": {
+              "type": "object",
+              "description": "Data encryption configuration. If not specified, then tenant will be created with DEDICATED_KEY",
+              "required": [
+                "mode"
+              ],
+              "properties": {
+                "mode": {
+                  "type": "string",
+                  "description": "The data encryption mode. DEDICATED_KEY is SAP generated tenant dedicated key.",
+                  "enum": [
+                    "DEDICATED_KEY"
+                  ]
+                }
+              }
+            }
+          },
+          "required": [
+            "serviceInstanceID"
+          ]
+        },
+        "CredentialCreateRequest": {
+          "type": "object",
+          "properties": {
+            "permissions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "string"
+              },
+              "description": "Additional permission sets that will be assigned to the credential users. Currently accepts [\"development\"] only"
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "string"
+              },
+              "description": "Database roles that will be assigned to the credential users"
+            }
+          }
+        },
+        "OperationRequest": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "The operation name",
+              "type": "string",
+              "enum": [
+                "recovery"
+              ]
+            },
+            "parameter": {
+              "description": "The operation parameter",
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/RecoveryParameter"
+                }
+              ]
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "RecoveryParameter": {
+          "type": "object",
+          "properties": {
+            "tenantID": {
+              "type": "string",
+              "format": "string",
+              "description": "Tenant ID"
+            },
+            "targetTimestamp": {
+              "type": "string",
+              "format": "string",
+              "description": "The timestamp to which the recovery should be done."
+            }
+          },
+          "required": [
+            "tenantID",
+            "targetTimestamp"
+          ],
+          "example": {
+            "name": "recovery",
+            "parameter": {
+              "tenantID": "string",
+              "targetServiceInstanceID": "string"
+            }
+          }
+        },
+        "Tenant": {
+          "type": "object",
+          "required": [
+            "id",
+            "status",
+            "serviceInstanceID"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "string",
+              "description": "Tenant ID"
+            },
+            "serviceInstanceID": {
+              "type": "string",
+              "format": "string",
+              "description": "HANA Cloud Instance ID"
+            },
+            "dataEncryption": {
+              "type": "object",
+              "description": "Data encryption configuration. If not specified, then tenant will be created with DEDICATED_KEY",
+              "required": [
+                "mode"
+              ],
+              "properties": {
+                "mode": {
+                  "type": "string",
+                  "description": "The data encryption mode. DEDICATED_KEY is SAP generated tenant dedicated key.",
+                  "enum": [
+                    "DEDICATED_KEY"
+                  ]
+                }
+              }
+            },
+            "createTimestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The timestamp of the tenant created, formatted in RFC3339 (e.g., 2021-04-23T09:18:43Z)"
+            },
+            "status": {
+              "type": "object",
+              "properties": {
+                "ready": {
+                  "type": "boolean",
+                  "description": "The readiness of tenant instance"
+                },
+                "state": {
+                  "$ref": "#/components/schemas/State"
+                },
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "string",
+                      "description": "Error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "format": "string",
+                      "description": "Error message"
+                    }
+                  }
+                },
+                "lastTransitionTimestamp": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "The timestamp of the last change in the `ready` status, formatted in RFC3339 (e.g., 2021-04-23T09:18:43Z)"
+                },
+                "lastOperation": {
+                  "$ref": "#/components/schemas/LastOperation"
+                }
+              }
+            },
+            "containers": {
+              "description": "List of the containers, only `id` will be returned by default.",
+              "type": "array",
+              "items": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Container"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Container": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "string",
+              "description": "Container ID"
+            },
+            "type": {
+              "type": "string",
+              "description": "The container type. It should be hdi or schema",
+              "enum": [
+                "hdi",
+                "schema"
+              ]
+            },
+            "name": {
+              "type": "string",
+              "format": "string",
+              "description": "The container (schema/hdi-container) name"
+            },
+            "makeUniqueName": {
+              "type": "boolean",
+              "description": "If set to true the container name will be made unique by adding a unique numerical suffix (_1, _2, etc.) to the container name"
+            },
+            "createTimestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The timestamp of the tenant created, formatted in RFC3339 (e.g., 2021-04-23T09:18:43Z)"
+            },
+            "status": {
+              "type": "object",
+              "properties": {
+                "lastTransitionTimestamp": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "The timestamp of the last change in the `ready` status, formatted in RFC3339 (e.g., 2021-04-23T09:18:43Z)"
+                },
+                "ready": {
+                  "type": "boolean",
+                  "description": "The readiness of container"
+                },
+                "state": {
+                  "$ref": "#/components/schemas/State"
+                },
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "string",
+                      "description": "Error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "format": "string",
+                      "description": "Error message"
+                    }
+                  }
+                }
+              }
+            },
+            "credentials": {
+              "type": "array",
+              "description": "List of the credentials, only `id` will be returned by default.",
+              "items": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Credential"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Credential": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "string",
+              "description": "Credential ID"
+            },
+            "serviceInstanceID": {
+              "type": "string",
+              "format": "string",
+              "description": "HANA Cloud Instance ID"
+            },
+            "host": {
+              "type": "string",
+              "format": "string",
+              "description": "Hostname of the HDI container"
+            },
+            "port": {
+              "type": "string",
+              "format": "string",
+              "description": "Port of the HDI container"
+            },
+            "driver": {
+              "type": "string",
+              "format": "string",
+              "description": "JDBC driver class name"
+            },
+            "url": {
+              "type": "string",
+              "format": "string",
+              "description": "JDBC URL"
+            },
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Schema name"
+            },
+            "certificate": {
+              "type": "string",
+              "format": "string",
+              "description": "Certificate chain"
+            },
+            "user": {
+              "type": "string",
+              "format": "string",
+              "description": "Credential username"
+            },
+            "password": {
+              "type": "string",
+              "format": "string",
+              "description": "Credential password"
+            },
+            "hdiUser": {
+              "type": "string",
+              "format": "string",
+              "description": "Credential username for the HDI admin user for containers of type 'hdi'"
+            },
+            "hdiPassword": {
+              "type": "string",
+              "format": "string",
+              "description": "Credential password for the HDI admin user for containers of type 'hdi'"
+            },
+            "state": {
+              "$ref": "#/components/schemas/State"
+            },
+            "error": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "format": "string",
+                  "description": "Error code"
+                },
+                "message": {
+                  "type": "string",
+                  "format": "string",
+                  "description": "Error message"
+                }
+              }
+            },
+            "createTimestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The timestamp of the tenant created, formatted in RFC3339 (e.g., 2021-04-23T09:18:43Z)"
+            }
+          }
+        },
+        "BaseOperation": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "string",
+              "description": "Operation ID"
+            },
+            "name": {
+              "type": "string",
+              "description": "The type of operation",
+              "enum": [
+                "create",
+                "delete",
+                "update",
+                "recovery"
+              ]
+            },
+            "status": {
+              "type": "object",
+              "required": [
+                "description",
+                "state"
+              ],
+              "properties": {
+                "startTimestamp": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "The timestamp of operation started"
+                },
+                "endTimestamp": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "The timestamp of operation finished. Value is `null` if still in progress"
+                },
+                "description": {
+                  "type": "string",
+                  "format": "string",
+                  "description": "The description of the operation"
+                },
+                "state": {
+                  "description": "The state of the operation",
+                  "type": "string",
+                  "enum": [
+                    "STARTING",
+                    "IN_PROGRESS",
+                    "COMPLETED",
+                    "FAILED",
+                    "WAIT_FOR_USER_INPUT"
+                  ],
+                  "example": "WAIT_FOR_USER_INPUT"
+                },
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "format": "string",
+                      "description": "Error code"
+                    },
+                    "message": {
+                      "type": "string",
+                      "format": "string",
+                      "description": "Error message"
+                    }
+                  }
+                }
+              }
+            },
+            "parameter": {
+              "description": "The operation parameter",
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/RecoveryParameter"
+                }
+              ]
+            }
+          }
+        },
+        "LastOperation": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/BaseOperation"
+            },
+            {
+              "type": "object",
+              "required": [
+                "name",
+                "status"
+              ]
+            }
+          ]
+        },
+        "Operation": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/BaseOperation"
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "status"
+              ]
+            }
+          ]
+        },
+        "State": {
+          "type": "string",
+          "description": "The state of the tenant, container, and credential",
+          "enum": [
+            "CREATE_SUCCEEDED",
+            "CREATE_IN_PROGRESS",
+            "CREATE_FAILED",
+            "UPDATE_SUCCEEDED",
+            "UPDATE_IN_PROGRESS",
+            "UPDATE_FAILED",
+            "DELETE_IN_PROGRESS",
+            "DELETE_FAILED",
+            "PHYSICAL_ENTITY_NOT_EXIST",
+            "LOGICAL_ENTITY_NOT_EXIST",
+            "OPERATION_SUCCEEDED",
+            "OPERATION_IN_PROGRESS",
+            "OPERATION_FAILED",
+            "INACTIVE_KEY_DISABLED",
+            "INACTIVE_KEY_REENABLED"
+          ]
+        },
+        "Error": {
+          "type": "object",
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "code": {
+              "description": "The error code",
+              "type": "string",
+              "enum": [
+                "FEATURE_DISABLED",
+                "FEATURE_NOT_SUPPORTED",
+                "OPERATION_IN_PROGRESS",
+                "TENANT_NOT_FOUND",
+                "TENANT_ALREADY_EXIST",
+                "HANA_SERVICE_NOT_FOUND",
+                "ASSIGNER_NOT_FOUND",
+                "SERVICE_CONTEXT_NOT_SUPPORTED",
+                "HANA_SERVICE_STOPPED",
+                "TENANT_NOT_READY",
+                "UNAUTHORIZED",
+                "TENANT_LIMIT_EXCEEDED",
+                "UNSUPPORTED_HANA_VERSION",
+                "EXCEEDED_QUOTA",
+                "RESOURCE_VERSION_CONFLICT",
+                "TENANT_UNDER_RECOVERY",
+                "TOO_MANY_REQUESTS",
+                "INTERNAL_ERROR",
+                "BAD_REQUEST",
+                "INVALID_MOVE_PRECHECK_BATCH_OPERATIONS",
+                "INCOMPATIBLE_VERSION"
+              ]
+            },
+            "message": {
+              "description": "The error message",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "examples": {
+        "errorGeneral": {
+          "value": {
+            "error": {
+              "code": "<ERROR_CODE>",
+              "message": "Error message."
+            }
+          }
+        },
+        "ValidRecoveryRequest": {
+          "value": {
+            "name": "recovery",
+            "parameter": {
+              "tenantID": "string",
+              "targetTimestamp": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "baseUrl": "https://api.gateway.orchestration.canary-eu21.hanacloud.ondemand.com",
+  "authType": "bearer",
+  "uploadedAt": "2025-10-03T11:52:16.009Z",
+  "filePath": "/Users/I038020/_My_code/SAPCFMCPServer/.mcp-api-specs/hana-multitenancy-api.json"
+}

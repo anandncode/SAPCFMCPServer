@@ -1,11 +1,11 @@
 {
   "mcpServers": {
-    "sap-cf": {
+    "sap-cf-debug": {
       "command": "node",
       "args": ["/Users/I038020/_My_code/SAPCFMCPServer/dist/index.js"],
       "env": {
-        "LOG_LEVEL": "info",
-        "MCP_DEBUG": "false"
+        "LOG_LEVEL": "debug",
+        "MCP_DEBUG": "true"
       }
     }
   }
