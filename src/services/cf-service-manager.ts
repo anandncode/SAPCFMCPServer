@@ -27,19 +27,23 @@ export interface CFServiceInfo {
 
 export class CFServiceManager {
   /**
-   * Check if user is logged in to CF
+   * Check if user is logged in to CF using CF API
    */
   public static async checkCFLogin(): Promise<boolean> {
     try {
-      const { stdout } = await execAsync('cf target');
-      return stdout.includes('API endpoint:') && stdout.includes('user:');
+      // Try to get API info - this will fail if not logged in
+      const { stdout } = await execAsync('cf curl /v2/info');
+      const apiInfo = JSON.parse(stdout);
+
+      // If we can parse the response and have a user field, we're logged in
+      return !!apiInfo.user;
     } catch (error) {
       return false;
     }
   }
 
   /**
-   * Get CF target information
+   * Get CF target information using CF API
    */
   public static async getCFTarget(): Promise<{
     api: string;
@@ -48,27 +52,42 @@ export class CFServiceManager {
     space: string;
   }> {
     try {
-      const { stdout } = await execAsync('cf target');
+      // Get API info
+      const { stdout: apiInfoOutput } = await execAsync('cf curl /v2/info');
+      const apiInfo = JSON.parse(apiInfoOutput);
 
-      const apiMatch = stdout.match(/API endpoint:\s+(.+)/);
-      const userMatch = stdout.match(/user:\s+(.+)/);
-      const orgMatch = stdout.match(/org:\s+(.+)/);
-      const spaceMatch = stdout.match(/space:\s+(.+)/);
+      // Get current user info
+      const { stdout: userInfoOutput } = await execAsync('cf curl /v3/users');
+      const userInfo = JSON.parse(userInfoOutput);
+
+      // Get current org info
+      const { stdout: orgsOutput } = await execAsync('cf curl /v3/organizations');
+      const orgsData = JSON.parse(orgsOutput);
+
+      // Get current space info
+      const { stdout: spacesOutput } = await execAsync('cf curl /v3/spaces');
+      const spacesData = JSON.parse(spacesOutput);
+
+      // Extract information
+      const api = apiInfo.api_endpoint || '';
+      const user = userInfo.resources?.[0]?.username || '';
+      const org = orgsData.resources?.[0]?.name || '';
+      const space = spacesData.resources?.[0]?.name || '';
 
       return {
-        api: apiMatch?.[1]?.trim() || '',
-        user: userMatch?.[1]?.trim() || '',
-        org: orgMatch?.[1]?.trim() || '',
-        space: spaceMatch?.[1]?.trim() || ''
+        api,
+        user,
+        org,
+        space
       };
     } catch (error) {
-      logError('Failed to get CF target info', error);
+      logError('Failed to get CF target info via API', error);
       throw new Error('Not logged in to Cloud Foundry. Please run "cf login" first.');
     }
   }
 
   /**
-   * Get service binding information
+   * Get service binding information using CF API
    */
   public static async getServiceBinding(serviceName: string): Promise<CFServiceBinding> {
     try {
@@ -78,70 +97,109 @@ export class CFServiceManager {
         throw new Error('Not logged in to Cloud Foundry. Please run "cf login" first.');
       }
 
-      // Get service information
-      const { stdout: serviceInfo } = await execAsync(`cf service "${serviceName}"`);
+      // Get service instances using CF API
+      const { stdout: serviceInstancesOutput } = await execAsync('cf curl /v3/service_instances');
+      const serviceInstancesData = JSON.parse(serviceInstancesOutput);
 
-      // Check if service exists
-      if (serviceInfo.includes('Service instance not found')) {
+      // Find the service instance by name
+      const serviceInstance = serviceInstancesData.resources?.find((instance: any) =>
+        instance.name === serviceName
+      );
+
+      if (!serviceInstance) {
         throw new Error(`Service "${serviceName}" not found in current space`);
       }
 
-      // Parse service info
-      const labelMatch = serviceInfo.match(/service:\s+(.+)/);
-      const planMatch = serviceInfo.match(/plan:\s+(.+)/);
-      const tagsMatch = serviceInfo.match(/tags:\s+(.+)/);
+      // Get service plan details
+      let servicePlan: any = { name: '', relationships: null };
+      if (serviceInstance.relationships?.service_plan?.data?.guid) {
+        try {
+          const { stdout: planOutput } = await execAsync(`cf curl /v3/service_plans/${serviceInstance.relationships.service_plan.data.guid}`);
+          servicePlan = JSON.parse(planOutput);
+        } catch (planError) {
+          logger.debug('Could not fetch service plan details', { error: planError });
+        }
+      }
 
-      // Get service key (credentials)
+      // Get service offering details for tags
+      let serviceOffering: any = { tags: [], name: '' };
+      if (servicePlan.relationships?.service_offering?.data?.guid) {
+        try {
+          const { stdout: offeringOutput } = await execAsync(`cf curl /v3/service_offerings/${servicePlan.relationships.service_offering.data.guid}`);
+          serviceOffering = JSON.parse(offeringOutput);
+        } catch (offeringError) {
+          logger.debug('Could not fetch service offering details', { error: offeringError });
+        }
+      }
+
+      // Get service credentials (service keys)
       let credentials: Record<string, any> = {};
 
       try {
-        // Try to get existing service key
-        const { stdout: keysOutput } = await execAsync(`cf service-keys "${serviceName}"`);
+        // Get service keys using CF API
+        const { stdout: serviceKeysOutput } = await execAsync(`cf curl /v3/service_credential_bindings?service_instance_guids=${serviceInstance.guid}&type=key`);
+        const serviceKeysData = JSON.parse(serviceKeysOutput);
 
-        // Check if there are any service keys
-        if (!keysOutput.includes('No service keys')) {
-          // Get the first service key name
-          const keyLines = keysOutput.split('\n').filter(line => line.trim() && !line.includes('Getting keys') && !line.includes('name'));
-          if (keyLines.length > 0) {
-            const keyName = keyLines[0].trim();
-            const { stdout: keyData } = await execAsync(`cf service-key "${serviceName}" "${keyName}"`);
-
-            // Parse JSON from service key
-            const jsonMatch = keyData.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              credentials = JSON.parse(jsonMatch[0]);
-            }
-          }
+        if (serviceKeysData.resources && serviceKeysData.resources.length > 0) {
+          // Get the first service key's details
+          const firstKey = serviceKeysData.resources[0];
+          const { stdout: keyDetailsOutput } = await execAsync(`cf curl /v3/service_credential_bindings/${firstKey.guid}/details`);
+          const keyDetails = JSON.parse(keyDetailsOutput);
+          credentials = keyDetails.credentials || {};
         }
       } catch (keyError) {
+        logger.debug('Could not fetch service key details, trying to create temporary key', { error: keyError });
+
         // If no service keys exist, try to create a temporary one
         try {
           const tempKeyName = `mcp-temp-key-${Date.now()}`;
-          await execAsync(`cf create-service-key "${serviceName}" "${tempKeyName}"`);
 
-          const { stdout: keyData } = await execAsync(`cf service-key "${serviceName}" "${tempKeyName}"`);
-          const jsonMatch = keyData.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            credentials = JSON.parse(jsonMatch[0]);
+          // Create service key using CF API
+          const createKeyPayload = {
+            type: 'key',
+            name: tempKeyName,
+            relationships: {
+              service_instance: {
+                data: {
+                  guid: serviceInstance.guid
+                }
+              }
+            }
+          };
+
+          const { stdout: createKeyOutput } = await execAsync(`cf curl /v3/service_credential_bindings -X POST -d '${JSON.stringify(createKeyPayload)}'`);
+          const createdKey = JSON.parse(createKeyOutput);
+
+          // Wait a moment for the key to be ready
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          // Get the created key's details
+          const { stdout: tempKeyDetailsOutput } = await execAsync(`cf curl /v3/service_credential_bindings/${createdKey.guid}/details`);
+          const tempKeyDetails = JSON.parse(tempKeyDetailsOutput);
+          credentials = tempKeyDetails.credentials || {};
+
+          // Clean up the temporary key
+          try {
+            await execAsync(`cf curl /v3/service_credential_bindings/${createdKey.guid} -X DELETE`);
+          } catch (deleteError) {
+            logger.warn('Could not delete temporary service key', { keyGuid: createdKey.guid, error: deleteError });
           }
-
-          // Clean up temporary key
-          await execAsync(`cf delete-service-key "${serviceName}" "${tempKeyName}" -f`);
         } catch (tempKeyError) {
           logError('Failed to create temporary service key', tempKeyError);
           // Continue without credentials
         }
       }
 
+      // Prepare the service binding response
       const binding: CFServiceBinding = {
         serviceName,
         credentials,
-        label: labelMatch?.[1]?.trim() || '',
-        plan: planMatch?.[1]?.trim() || '',
-        tags: tagsMatch?.[1]?.split(',').map(tag => tag.trim()) || []
+        label: serviceOffering.name || '',
+        plan: servicePlan.name || '',
+        tags: serviceOffering.tags || []
       };
 
-      logger.info('Retrieved service binding', {
+      logger.info('Retrieved service binding via CF API', {
         serviceName,
         label: binding.label,
         plan: binding.plan,
@@ -157,7 +215,7 @@ export class CFServiceManager {
   }
 
   /**
-   * List all services in current space
+   * List all CF services in the current space using CF API
    */
   public static async listServices(): Promise<CFServiceInfo[]> {
     try {
@@ -166,47 +224,79 @@ export class CFServiceManager {
         throw new Error('Not logged in to Cloud Foundry. Please run "cf login" first.');
       }
 
-      const { stdout } = await execAsync('cf services');
+      // Get service instances using CF API
+      const { stdout: serviceInstancesOutput } = await execAsync('cf curl /v3/service_instances');
+      const serviceInstancesData = JSON.parse(serviceInstancesOutput);
 
       const services: CFServiceInfo[] = [];
-      const lines = stdout.split('\n');
 
-      let dataStarted = false;
-      for (const line of lines) {
-        if (line.includes('name') && line.includes('service') && line.includes('plan')) {
-          dataStarted = true;
-          continue;
-        }
+      for (const instance of serviceInstancesData.resources || []) {
+        // Get service plan details
+        let planName = '';
+        let serviceName = '';
 
-        if (dataStarted && line.trim()) {
-          const parts = line.split(/\s+/);
-          if (parts.length >= 4) {
-            services.push({
-              name: parts[0],
-              service: parts[1],
-              plan: parts[2],
-              bound_apps: parts[3] === 'none' ? [] : parts[3].split(','),
-              last_operation: {
-                type: parts[4] || '',
-                state: parts[5] || '',
-                description: parts.slice(6).join(' ') || '',
-                updated_at: ''
-              }
-            });
+        if (instance.relationships?.service_plan?.data?.guid) {
+          try {
+            const { stdout: planOutput } = await execAsync(`cf curl /v3/service_plans/${instance.relationships.service_plan.data.guid}`);
+            const plan = JSON.parse(planOutput);
+            planName = plan.name || '';
+
+            // Get service offering name
+            if (plan.relationships?.service_offering?.data?.guid) {
+              const { stdout: offeringOutput } = await execAsync(`cf curl /v3/service_offerings/${plan.relationships.service_offering.data.guid}`);
+              const offering = JSON.parse(offeringOutput);
+              serviceName = offering.name || '';
+            }
+          } catch (planError) {
+            logger.debug('Could not fetch plan details for service instance', { instanceGuid: instance.guid, error: planError });
           }
         }
+
+        // Get bound apps
+        const boundApps: string[] = [];
+        try {
+          const { stdout: bindingsOutput } = await execAsync(`cf curl /v3/service_credential_bindings?service_instance_guids=${instance.guid}&type=app`);
+          const bindingsData = JSON.parse(bindingsOutput);
+
+          for (const binding of bindingsData.resources || []) {
+            if (binding.relationships?.app?.data?.guid) {
+              try {
+                const { stdout: appOutput } = await execAsync(`cf curl /v3/apps/${binding.relationships.app.data.guid}`);
+                const app = JSON.parse(appOutput);
+                if (app.name) {
+                  boundApps.push(app.name);
+                }
+              } catch (appError) {
+                logger.debug('Could not fetch app name for binding', { bindingGuid: binding.guid, error: appError });
+              }
+            }
+          }
+        } catch (bindingError) {
+          logger.debug('Could not fetch app bindings for service instance', { instanceGuid: instance.guid, error: bindingError });
+        }
+
+        services.push({
+          name: instance.name,
+          service: serviceName,
+          plan: planName,
+          bound_apps: boundApps,
+          last_operation: {
+            type: instance.last_operation?.type || '',
+            state: instance.last_operation?.state || '',
+            description: instance.last_operation?.description || '',
+            updated_at: instance.last_operation?.updated_at || instance.updated_at || ''
+          }
+        });
       }
 
-      logger.info('Listed CF services', { count: services.length });
+      logger.info('Listed CF services via API', { count: services.length });
       return services;
 
     } catch (error) {
-      logError('Failed to list CF services', error);
+      logError('Failed to list CF services via API', error);
       throw error;
     }
-  }
-
-  /**
+  }  /**
    * Get VCAP_SERVICES equivalent from service bindings
    */
   public static async getVCAPServices(serviceNames?: string[]): Promise<Record<string, CFServiceBinding[]>> {

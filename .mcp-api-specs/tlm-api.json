@@ -1,0 +1,2391 @@
+{
+  "id": "tlm-api",
+  "name": "TLM Service API",
+  "description": "Tenant Lifecycle Management (TLM) Service API for managing tenant operations and lifecycle",
+  "spec": {
+    "openapi": "3.0.2",
+    "info": {
+      "title": "Use @title: '...' on your CDS service to provide a meaningful title.",
+      "description": "Use @Core.LongDescription: '...' on your CDS service to provide a meaningful description.",
+      "version": ""
+    },
+    "x-sap-api-type": "ODATAV4",
+    "x-odata-version": "4.01",
+    "x-sap-shortText": "Use @Core.Description: '...' on your CDS service to provide a meaningful short text.",
+    "servers": [
+      {
+        "url": "/rest/tlmservice"
+      }
+    ],
+    "tags": [
+      {
+        "name": "dbinstancepool"
+      },
+      {
+        "name": "dbtenants"
+      },
+      {
+        "name": "tenantcontainermap"
+      }
+    ],
+    "paths": {
+      "/$batch": {
+        "post": {
+          "summary": "Sends a group of requests",
+          "description": "Group multiple requests into a single request payload, see [Batch Requests](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_BatchRequests).\n\n*Please note that \"Try it out\" is not supported for this request.*",
+          "tags": [
+            "Batch Requests"
+          ],
+          "requestBody": {
+            "required": true,
+            "description": "Batch request",
+            "content": {
+              "multipart/mixed;boundary=request-separator": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "--request-separator\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nGET dbinstancepool HTTP/1.1\nAccept: application/json\n\n\n--request-separator--"
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Batch response",
+              "content": {
+                "multipart/mixed": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "example": "--response-separator\nContent-Type: application/http\n\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n{...}\n--response-separator--"
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/dbinstancepool": {
+        "get": {
+          "summary": "Retrieves a list of dbinstancepool.",
+          "tags": [
+            "dbinstancepool"
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/top"
+            },
+            {
+              "$ref": "#/components/parameters/skip"
+            },
+            {
+              "$ref": "#/components/parameters/search"
+            },
+            {
+              "name": "$filter",
+              "description": "Filter items by property values, see [Filtering](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionfilter)",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "$ref": "#/components/parameters/count"
+            },
+            {
+              "name": "$orderby",
+              "description": "Order items by property values, see [Sorting](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionorderby)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdAt desc",
+                    "createdBy",
+                    "createdBy desc",
+                    "modifiedAt",
+                    "modifiedAt desc",
+                    "modifiedBy",
+                    "modifiedBy desc",
+                    "ID",
+                    "ID desc",
+                    "suiteId",
+                    "suiteId desc",
+                    "dbInstanceId",
+                    "dbInstanceId desc",
+                    "dbInstanceName",
+                    "dbInstanceName desc",
+                    "tenantBusinessType",
+                    "tenantBusinessType desc",
+                    "maxTenants",
+                    "maxTenants desc",
+                    "tenantsCount",
+                    "tenantsCount desc"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "suiteId",
+                    "dbInstanceId",
+                    "dbInstanceName",
+                    "tenantBusinessType",
+                    "maxTenants",
+                    "tenantsCount"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbTenants"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved dbinstancepool",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "title": "Collection of dbinstancepool",
+                    "properties": {
+                      "@count": {
+                        "$ref": "#/components/schemas/count"
+                      },
+                      "value": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/TLMService.dbinstancepool"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "post": {
+          "summary": "Creates a single dbinstancepool.",
+          "tags": [
+            "dbinstancepool"
+          ],
+          "requestBody": {
+            "description": "New dbinstancepool",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TLMService.dbinstancepool-create"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Created dbinstancepool",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.dbinstancepool"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/dbinstancepool({ID})": {
+        "parameters": [
+          {
+            "description": "key: ID",
+            "in": "path",
+            "name": "ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            }
+          }
+        ],
+        "get": {
+          "summary": "Retrieves a single dbinstancepool.",
+          "tags": [
+            "dbinstancepool"
+          ],
+          "parameters": [
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "suiteId",
+                    "dbInstanceId",
+                    "dbInstanceName",
+                    "tenantBusinessType",
+                    "maxTenants",
+                    "tenantsCount"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbTenants"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved dbinstancepool",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.dbinstancepool"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "patch": {
+          "summary": "Changes a single dbinstancepool.",
+          "tags": [
+            "dbinstancepool"
+          ],
+          "requestBody": {
+            "description": "New property values",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TLMService.dbinstancepool-update"
+                }
+              }
+            }
+          },
+          "responses": {
+            "204": {
+              "description": "Success"
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "delete": {
+          "summary": "Deletes a single dbinstancepool.",
+          "tags": [
+            "dbinstancepool"
+          ],
+          "responses": {
+            "204": {
+              "description": "Success"
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/dbinstancepool({ID})/dbTenants": {
+        "parameters": [
+          {
+            "description": "key: ID",
+            "in": "path",
+            "name": "ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            }
+          }
+        ],
+        "get": {
+          "summary": "Retrieves a list of db tenants of a dbinstancepool.",
+          "tags": [
+            "dbinstancepool",
+            "dbtenants"
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/top"
+            },
+            {
+              "$ref": "#/components/parameters/skip"
+            },
+            {
+              "$ref": "#/components/parameters/search"
+            },
+            {
+              "name": "$filter",
+              "description": "Filter items by property values, see [Filtering](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionfilter)",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "$ref": "#/components/parameters/count"
+            },
+            {
+              "name": "$orderby",
+              "description": "Order items by property values, see [Sorting](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionorderby)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdAt desc",
+                    "createdBy",
+                    "createdBy desc",
+                    "modifiedAt",
+                    "modifiedAt desc",
+                    "modifiedBy",
+                    "modifiedBy desc",
+                    "ID",
+                    "ID desc",
+                    "dbInstanceId",
+                    "dbInstanceId desc",
+                    "dbTenantId",
+                    "dbTenantId desc",
+                    "customerId",
+                    "customerId desc",
+                    "suiteId",
+                    "suiteId desc",
+                    "tenantBusinessType",
+                    "tenantBusinessType desc"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "dbInstanceId",
+                    "dbTenantId",
+                    "customerId",
+                    "suiteId",
+                    "tenantBusinessType"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbInstance",
+                    "tenantContainerMaps"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved db tenants",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "title": "Collection of dbtenants",
+                    "properties": {
+                      "@count": {
+                        "$ref": "#/components/schemas/count"
+                      },
+                      "value": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/TLMService.dbtenants"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "post": {
+          "summary": "Creates a single db tenant of a dbinstancepool.",
+          "tags": [
+            "dbinstancepool",
+            "dbtenants"
+          ],
+          "requestBody": {
+            "description": "New db tenant",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TLMService.dbtenants-create"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Created db tenant",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.dbtenants"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/dbtenants": {
+        "get": {
+          "summary": "Retrieves a list of dbtenants.",
+          "tags": [
+            "dbtenants"
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/top"
+            },
+            {
+              "$ref": "#/components/parameters/skip"
+            },
+            {
+              "$ref": "#/components/parameters/search"
+            },
+            {
+              "name": "$filter",
+              "description": "Filter items by property values, see [Filtering](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionfilter)",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "$ref": "#/components/parameters/count"
+            },
+            {
+              "name": "$orderby",
+              "description": "Order items by property values, see [Sorting](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionorderby)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdAt desc",
+                    "createdBy",
+                    "createdBy desc",
+                    "modifiedAt",
+                    "modifiedAt desc",
+                    "modifiedBy",
+                    "modifiedBy desc",
+                    "ID",
+                    "ID desc",
+                    "dbInstanceId",
+                    "dbInstanceId desc",
+                    "dbTenantId",
+                    "dbTenantId desc",
+                    "customerId",
+                    "customerId desc",
+                    "suiteId",
+                    "suiteId desc",
+                    "tenantBusinessType",
+                    "tenantBusinessType desc"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "dbInstanceId",
+                    "dbTenantId",
+                    "customerId",
+                    "suiteId",
+                    "tenantBusinessType"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbInstance",
+                    "tenantContainerMaps"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved dbtenants",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "title": "Collection of dbtenants",
+                    "properties": {
+                      "@count": {
+                        "$ref": "#/components/schemas/count"
+                      },
+                      "value": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/TLMService.dbtenants"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "post": {
+          "summary": "Creates a single dbtenant.",
+          "tags": [
+            "dbtenants"
+          ],
+          "requestBody": {
+            "description": "New dbtenant",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TLMService.dbtenants-create"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Created dbtenant",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.dbtenants"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/dbtenants({ID})": {
+        "parameters": [
+          {
+            "description": "key: ID",
+            "in": "path",
+            "name": "ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            }
+          }
+        ],
+        "get": {
+          "summary": "Retrieves a single dbtenant.",
+          "tags": [
+            "dbtenants"
+          ],
+          "parameters": [
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "dbInstanceId",
+                    "dbTenantId",
+                    "customerId",
+                    "suiteId",
+                    "tenantBusinessType"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbInstance",
+                    "tenantContainerMaps"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved dbtenant",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.dbtenants"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "patch": {
+          "summary": "Changes a single dbtenant.",
+          "tags": [
+            "dbtenants"
+          ],
+          "requestBody": {
+            "description": "New property values",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TLMService.dbtenants-update"
+                }
+              }
+            }
+          },
+          "responses": {
+            "204": {
+              "description": "Success"
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "delete": {
+          "summary": "Deletes a single dbtenant.",
+          "tags": [
+            "dbtenants"
+          ],
+          "responses": {
+            "204": {
+              "description": "Success"
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/dbtenants({ID})/dbInstance": {
+        "parameters": [
+          {
+            "description": "key: ID",
+            "in": "path",
+            "name": "ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            }
+          }
+        ],
+        "get": {
+          "summary": "Retrieves db instance of a dbtenant.",
+          "tags": [
+            "dbtenants",
+            "dbinstancepool"
+          ],
+          "parameters": [
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "suiteId",
+                    "dbInstanceId",
+                    "dbInstanceName",
+                    "tenantBusinessType",
+                    "maxTenants",
+                    "tenantsCount"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbTenants"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved db instance",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.dbinstancepool"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/dbtenants({ID})/tenantContainerMaps": {
+        "parameters": [
+          {
+            "description": "key: ID",
+            "in": "path",
+            "name": "ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            }
+          }
+        ],
+        "get": {
+          "summary": "Retrieves a list of tenant container maps of a dbtenant.",
+          "tags": [
+            "dbtenants",
+            "tenantcontainermap"
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/top"
+            },
+            {
+              "$ref": "#/components/parameters/skip"
+            },
+            {
+              "$ref": "#/components/parameters/search"
+            },
+            {
+              "name": "$filter",
+              "description": "Filter items by property values, see [Filtering](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionfilter)",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "$ref": "#/components/parameters/count"
+            },
+            {
+              "name": "$orderby",
+              "description": "Order items by property values, see [Sorting](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionorderby)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdAt desc",
+                    "createdBy",
+                    "createdBy desc",
+                    "modifiedAt",
+                    "modifiedAt desc",
+                    "modifiedBy",
+                    "modifiedBy desc",
+                    "ID",
+                    "ID desc",
+                    "dbInstanceId",
+                    "dbInstanceId desc",
+                    "dbTenantId",
+                    "dbTenantId desc",
+                    "dbContainerId",
+                    "dbContainerId desc",
+                    "appSubscriberTenantId",
+                    "appSubscriberTenantId desc",
+                    "appDomain",
+                    "appDomain desc",
+                    "status",
+                    "status desc",
+                    "errorMessage",
+                    "errorMessage desc",
+                    "suiteId",
+                    "suiteId desc",
+                    "tenantBusinessType",
+                    "tenantBusinessType desc"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "dbInstanceId",
+                    "dbTenantId",
+                    "dbContainerId",
+                    "appSubscriberTenantId",
+                    "appDomain",
+                    "status",
+                    "errorMessage",
+                    "suiteId",
+                    "tenantBusinessType"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbInstance",
+                    "dbTenant"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved tenant container maps",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "title": "Collection of tenantcontainermap",
+                    "properties": {
+                      "@count": {
+                        "$ref": "#/components/schemas/count"
+                      },
+                      "value": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/TLMService.tenantcontainermap"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "post": {
+          "summary": "Creates a single tenant container map of a dbtenant.",
+          "tags": [
+            "dbtenants",
+            "tenantcontainermap"
+          ],
+          "requestBody": {
+            "description": "New tenant container map",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TLMService.tenantcontainermap-create"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Created tenant container map",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.tenantcontainermap"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/processAppDeProvision": {
+        "post": {
+          "summary": "Invokes action processAppDeProvision",
+          "tags": [
+            "Service Operations"
+          ],
+          "responses": {
+            "200": {
+              "description": "Success",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/TLMService.SubscriptionResponse"
+                      }
+                    ],
+                    "nullable": true
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          },
+          "requestBody": {
+            "description": "Action parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deProvisionPayload": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/TLMService.SubscriptionPayload"
+                        }
+                      ],
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/processAppSubscription": {
+        "post": {
+          "summary": "Invokes action processAppSubscription",
+          "tags": [
+            "Service Operations"
+          ],
+          "responses": {
+            "200": {
+              "description": "Success",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/TLMService.SubscriptionResponse"
+                      }
+                    ],
+                    "nullable": true
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          },
+          "requestBody": {
+            "description": "Action parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "subscriptionPayload": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/TLMService.SubscriptionPayload"
+                        }
+                      ],
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/tenantcontainermap": {
+        "get": {
+          "summary": "Retrieves a list of tenantcontainermap.",
+          "tags": [
+            "tenantcontainermap"
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/top"
+            },
+            {
+              "$ref": "#/components/parameters/skip"
+            },
+            {
+              "$ref": "#/components/parameters/search"
+            },
+            {
+              "name": "$filter",
+              "description": "Filter items by property values, see [Filtering](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionfilter)",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "$ref": "#/components/parameters/count"
+            },
+            {
+              "name": "$orderby",
+              "description": "Order items by property values, see [Sorting](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionorderby)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdAt desc",
+                    "createdBy",
+                    "createdBy desc",
+                    "modifiedAt",
+                    "modifiedAt desc",
+                    "modifiedBy",
+                    "modifiedBy desc",
+                    "ID",
+                    "ID desc",
+                    "dbInstanceId",
+                    "dbInstanceId desc",
+                    "dbTenantId",
+                    "dbTenantId desc",
+                    "dbContainerId",
+                    "dbContainerId desc",
+                    "appSubscriberTenantId",
+                    "appSubscriberTenantId desc",
+                    "appDomain",
+                    "appDomain desc",
+                    "status",
+                    "status desc",
+                    "errorMessage",
+                    "errorMessage desc",
+                    "suiteId",
+                    "suiteId desc",
+                    "tenantBusinessType",
+                    "tenantBusinessType desc"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "dbInstanceId",
+                    "dbTenantId",
+                    "dbContainerId",
+                    "appSubscriberTenantId",
+                    "appDomain",
+                    "status",
+                    "errorMessage",
+                    "suiteId",
+                    "tenantBusinessType"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbInstance",
+                    "dbTenant"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved tenantcontainermap",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "title": "Collection of tenantcontainermap",
+                    "properties": {
+                      "@count": {
+                        "$ref": "#/components/schemas/count"
+                      },
+                      "value": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/TLMService.tenantcontainermap"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "post": {
+          "summary": "Creates a single tenantcontainermap.",
+          "tags": [
+            "tenantcontainermap"
+          ],
+          "requestBody": {
+            "description": "New tenantcontainermap",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TLMService.tenantcontainermap-create"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Created tenantcontainermap",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.tenantcontainermap"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/tenantcontainermap({ID})": {
+        "parameters": [
+          {
+            "description": "key: ID",
+            "in": "path",
+            "name": "ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            }
+          }
+        ],
+        "get": {
+          "summary": "Retrieves a single tenantcontainermap.",
+          "tags": [
+            "tenantcontainermap"
+          ],
+          "parameters": [
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "dbInstanceId",
+                    "dbTenantId",
+                    "dbContainerId",
+                    "appSubscriberTenantId",
+                    "appDomain",
+                    "status",
+                    "errorMessage",
+                    "suiteId",
+                    "tenantBusinessType"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbInstance",
+                    "dbTenant"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved tenantcontainermap",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.tenantcontainermap"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "patch": {
+          "summary": "Changes a single tenantcontainermap.",
+          "tags": [
+            "tenantcontainermap"
+          ],
+          "requestBody": {
+            "description": "New property values",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TLMService.tenantcontainermap-update"
+                }
+              }
+            }
+          },
+          "responses": {
+            "204": {
+              "description": "Success"
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        },
+        "delete": {
+          "summary": "Deletes a single tenantcontainermap.",
+          "tags": [
+            "tenantcontainermap"
+          ],
+          "responses": {
+            "204": {
+              "description": "Success"
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/tenantcontainermap({ID})/dbInstance": {
+        "parameters": [
+          {
+            "description": "key: ID",
+            "in": "path",
+            "name": "ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            }
+          }
+        ],
+        "get": {
+          "summary": "Retrieves db instance of a tenantcontainermap.",
+          "tags": [
+            "tenantcontainermap",
+            "dbinstancepool"
+          ],
+          "parameters": [
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "suiteId",
+                    "dbInstanceId",
+                    "dbInstanceName",
+                    "tenantBusinessType",
+                    "maxTenants",
+                    "tenantsCount"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbTenants"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved db instance",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.dbinstancepool"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/tenantcontainermap({ID})/dbTenant": {
+        "parameters": [
+          {
+            "description": "key: ID",
+            "in": "path",
+            "name": "ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            }
+          }
+        ],
+        "get": {
+          "summary": "Retrieves db tenant of a tenantcontainermap.",
+          "tags": [
+            "tenantcontainermap",
+            "dbtenants"
+          ],
+          "parameters": [
+            {
+              "name": "$select",
+              "description": "Select properties to be returned, see [Select](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionselect)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "createdAt",
+                    "createdBy",
+                    "modifiedAt",
+                    "modifiedBy",
+                    "ID",
+                    "dbInstanceId",
+                    "dbTenantId",
+                    "customerId",
+                    "suiteId",
+                    "tenantBusinessType"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "$expand",
+              "description": "The value of $expand query option is a comma-separated list of navigation property names, stream property names, or $value indicating the stream content of a media-entity. The corresponding related entities and stream values will be represented inline, see [Expand](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionexpand)",
+              "in": "query",
+              "explode": false,
+              "schema": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "*",
+                    "dbInstance",
+                    "tenantContainerMaps"
+                  ]
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Retrieved db tenant",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TLMService.dbtenants"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          }
+        }
+      },
+      "/updateSubscriptionStatus": {
+        "post": {
+          "summary": "Invokes action updateSubscriptionStatus",
+          "tags": [
+            "Service Operations"
+          ],
+          "responses": {
+            "204": {
+              "description": "Success"
+            },
+            "4XX": {
+              "$ref": "#/components/responses/error"
+            }
+          },
+          "requestBody": {
+            "description": "Action parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tenantContainerMapId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "appSubscriberTenantId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "appDomain": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "status": {
+                      "type": "string",
+                      "maxLength": 30,
+                      "enum": [
+                        "SUBSCRIPTION_IN_PROGRESS",
+                        "CONTAINER_DEPLOYED",
+                        "DEPLOYMENT_FAILED"
+                      ],
+                      "nullable": true
+                    },
+                    "errorMessage": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "TLMService.SubscriptionPayload": {
+          "title": "SubscriptionPayload",
+          "type": "object",
+          "properties": {
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "customerId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "appSubscriberTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "appDomain": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        },
+        "TLMService.SubscriptionResponse": {
+          "title": "SubscriptionResponse",
+          "type": "object",
+          "properties": {
+            "tenantContainerMap": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TLMService.tenantcontainermap"
+                }
+              ],
+              "nullable": true
+            },
+            "tenantContainerMap_ID": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef",
+              "nullable": true
+            },
+            "isTenantExists": {
+              "type": "boolean",
+              "nullable": true,
+              "default": false
+            },
+            "isContainerExists": {
+              "type": "boolean",
+              "nullable": true,
+              "default": false
+            }
+          }
+        },
+        "TLMService.dbinstancepool": {
+          "title": "dbinstancepool",
+          "type": "object",
+          "properties": {
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2017-04-13T15:51:04.0000000Z",
+              "nullable": true
+            },
+            "createdBy": {
+              "type": "string",
+              "maxLength": 255,
+              "nullable": true
+            },
+            "modifiedAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2017-04-13T15:51:04.0000000Z",
+              "nullable": true
+            },
+            "modifiedBy": {
+              "type": "string",
+              "maxLength": 255,
+              "nullable": true
+            },
+            "ID": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            },
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbInstanceId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbInstanceName": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "maxTenants": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            },
+            "dbTenants": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TLMService.dbtenants"
+              }
+            },
+            "dbTenants@count": {
+              "$ref": "#/components/schemas/count"
+            },
+            "tenantsCount": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            }
+          }
+        },
+        "TLMService.dbinstancepool-create": {
+          "title": "dbinstancepool (for create)",
+          "type": "object",
+          "properties": {
+            "ID": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            },
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbInstanceId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbInstanceName": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "maxTenants": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            },
+            "dbTenants": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TLMService.dbtenants-create"
+              }
+            }
+          }
+        },
+        "TLMService.dbinstancepool-update": {
+          "title": "dbinstancepool (for update)",
+          "type": "object",
+          "properties": {
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbInstanceId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbInstanceName": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "maxTenants": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            },
+            "dbTenants": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TLMService.dbtenants-create"
+              }
+            }
+          }
+        },
+        "TLMService.dbtenants": {
+          "title": "dbtenants",
+          "type": "object",
+          "properties": {
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2017-04-13T15:51:04.0000000Z",
+              "nullable": true
+            },
+            "createdBy": {
+              "type": "string",
+              "maxLength": 255,
+              "nullable": true
+            },
+            "modifiedAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2017-04-13T15:51:04.0000000Z",
+              "nullable": true
+            },
+            "modifiedBy": {
+              "type": "string",
+              "maxLength": 255,
+              "nullable": true
+            },
+            "ID": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            },
+            "dbInstanceId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbInstance": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TLMService.dbinstancepool"
+                }
+              ],
+              "nullable": true
+            },
+            "dbTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "customerId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "tenantContainerMaps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TLMService.tenantcontainermap"
+              }
+            },
+            "tenantContainerMaps@count": {
+              "$ref": "#/components/schemas/count"
+            },
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            }
+          }
+        },
+        "TLMService.dbtenants-create": {
+          "title": "dbtenants (for create)",
+          "type": "object",
+          "properties": {
+            "ID": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            },
+            "dbInstanceId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "customerId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "tenantContainerMaps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TLMService.tenantcontainermap-create"
+              }
+            },
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            }
+          }
+        },
+        "TLMService.dbtenants-update": {
+          "title": "dbtenants (for update)",
+          "type": "object",
+          "properties": {
+            "dbInstanceId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "customerId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "tenantContainerMaps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TLMService.tenantcontainermap-create"
+              }
+            },
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            }
+          }
+        },
+        "TLMService.tenantcontainermap": {
+          "title": "tenantcontainermap",
+          "type": "object",
+          "properties": {
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2017-04-13T15:51:04.0000000Z",
+              "nullable": true
+            },
+            "createdBy": {
+              "type": "string",
+              "maxLength": 255,
+              "nullable": true
+            },
+            "modifiedAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2017-04-13T15:51:04.0000000Z",
+              "nullable": true
+            },
+            "modifiedBy": {
+              "type": "string",
+              "maxLength": 255,
+              "nullable": true
+            },
+            "ID": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            },
+            "dbInstanceId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbInstance": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TLMService.dbinstancepool"
+                }
+              ],
+              "nullable": true
+            },
+            "dbTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbTenant": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TLMService.dbtenants"
+                }
+              ],
+              "nullable": true
+            },
+            "dbContainerId": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            },
+            "appSubscriberTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "appDomain": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 30,
+              "enum": [
+                "SUBSCRIPTION_IN_PROGRESS",
+                "CONTAINER_DEPLOYED",
+                "DEPLOYMENT_FAILED"
+              ],
+              "nullable": true,
+              "default": null
+            },
+            "errorMessage": {
+              "type": "string",
+              "maxLength": 500,
+              "nullable": true,
+              "default": null
+            },
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            }
+          }
+        },
+        "TLMService.tenantcontainermap-create": {
+          "title": "tenantcontainermap (for create)",
+          "type": "object",
+          "properties": {
+            "ID": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01234567-89ab-cdef-0123-456789abcdef"
+            },
+            "dbInstanceId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbContainerId": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            },
+            "appSubscriberTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "appDomain": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 30,
+              "enum": [
+                "SUBSCRIPTION_IN_PROGRESS",
+                "CONTAINER_DEPLOYED",
+                "DEPLOYMENT_FAILED"
+              ],
+              "nullable": true,
+              "default": null
+            },
+            "errorMessage": {
+              "type": "string",
+              "maxLength": 500,
+              "nullable": true,
+              "default": null
+            },
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            }
+          }
+        },
+        "TLMService.tenantcontainermap-update": {
+          "title": "tenantcontainermap (for update)",
+          "type": "object",
+          "properties": {
+            "dbInstanceId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "dbContainerId": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            },
+            "appSubscriberTenantId": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "appDomain": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 30,
+              "enum": [
+                "SUBSCRIPTION_IN_PROGRESS",
+                "CONTAINER_DEPLOYED",
+                "DEPLOYMENT_FAILED"
+              ],
+              "nullable": true,
+              "default": null
+            },
+            "errorMessage": {
+              "type": "string",
+              "maxLength": 500,
+              "nullable": true,
+              "default": null
+            },
+            "suiteId": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            },
+            "tenantBusinessType": {
+              "type": "string",
+              "maxLength": 100,
+              "nullable": true
+            }
+          }
+        },
+        "count": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The number of entities in the collection. Available when using the [$count](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptioncount) query option."
+        },
+        "error": {
+          "type": "object",
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "error": {
+              "type": "object",
+              "required": [
+                "code",
+                "message"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "target": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "code",
+                      "message"
+                    ],
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "innererror": {
+                  "type": "object",
+                  "description": "The structure of this object is service-specific"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": {
+        "top": {
+          "name": "$top",
+          "in": "query",
+          "description": "Show only the first n items, see [Paging - Top](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptiontop)",
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "example": 50
+        },
+        "skip": {
+          "name": "$skip",
+          "in": "query",
+          "description": "Skip the first n items, see [Paging - Skip](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionskip)",
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "count": {
+          "name": "$count",
+          "in": "query",
+          "description": "Include count of items, see [Count](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptioncount)",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "search": {
+          "name": "$search",
+          "in": "query",
+          "description": "Search items by search phrases, see [Searching](http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part1-protocol.html#sec_SystemQueryOptionsearch)",
+          "schema": {
+            "type": "string"
+          }
+        }
+      },
+      "responses": {
+        "error": {
+          "description": "Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/error"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "baseUrl": "https://tlmdeveu21org-dev1-tlm-service.cfapps.eu21.hana.ondemand.com/odata/v4/TLMService",
+  "authType": "bearer",
+  "uploadedAt": "2025-10-04T16:28:43.145Z",
+  "filePath": "/Users/I038020/_My_code/SAPCFMCPServer/.mcp-api-specs/tlm-api.json"
+}

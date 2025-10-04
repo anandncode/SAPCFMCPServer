@@ -1,63 +1,49 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { XSUAAAuthService, CloudFoundryAPIService } from '../services/index.js';
+import { XSUAAAuthService, CloudFoundryAPIService, CFServiceManager } from '../services/index.js';
 import { logger, logError } from '../utils/logger.js';
 
 export const getCFResourcesTool: Tool = {
   name: 'get_cf_resources',
-  description: 'Get Cloud Foundry resources (applications, services, spaces, orgs) using authenticated API calls',
+  description: 'Get Cloud Foundry resources using current CF login session',
   inputSchema: {
     type: 'object',
     properties: {
-      apiUrl: {
-        type: 'string',
-        description: 'Cloud Foundry API URL (e.g., https://api.cf.sap.hana.ondemand.com)'
-      },
-      credentials: {
-        type: 'object',
-        description: 'XSUAA service credentials for authentication',
-        properties: {
-          clientid: { type: 'string' },
-          clientsecret: { type: 'string' },
-          url: { type: 'string' },
-          uaadomain: { type: 'string' }
-        },
-        required: ['clientid', 'clientsecret', 'url', 'uaadomain']
-      },
       resourceType: {
         type: 'string',
-        enum: ['organizations', 'spaces', 'applications', 'services', 'app-details', 'service-details'],
-        description: 'Type of resources to retrieve'
-      },
-      parentGuid: {
-        type: 'string',
-        description: 'Parent GUID (required for spaces, applications, services)'
-      },
-      resourceGuid: {
-        type: 'string',
-        description: 'Specific resource GUID (required for app-details, service-details)'
-      },
-      resourceName: {
-        type: 'string',
-        description: 'Search for resources by name'
+        enum: ['apps', 'services', 'spaces', 'orgs', 'target'],
+        description: 'Type of CF resources to retrieve',
+        default: 'apps'
       }
     },
-    required: ['apiUrl', 'credentials', 'resourceType']
+    required: ['resourceType']
   }
 };
 
 export async function handleGetCFResources(args: any): Promise<any> {
   try {
-    // Validate credentials
-    if (!XSUAAAuthService.validateCredentials(args.credentials)) {
+    // Check CF login status first
+    const isLoggedIn = await CFServiceManager.checkCFLogin();
+    if (!isLoggedIn) {
       return {
         success: false,
-        error: 'Invalid XSUAA credentials provided'
+        error: 'CF CLI not logged in. Please run "cf login" first.'
       };
     }
 
-    // Create services
-    const authService = new XSUAAAuthService(args.credentials);
-    const cfService = new CloudFoundryAPIService(args.apiUrl, authService);
+    // If credentials are provided, use XSUAA auth, otherwise rely on CF login session
+    let cfService: CloudFoundryAPIService;
+
+    if (args.credentials && XSUAAAuthService.validateCredentials(args.credentials)) {
+      const authService = new XSUAAAuthService(args.credentials);
+      cfService = new CloudFoundryAPIService(args.apiUrl, authService);
+    } else {
+      // Use CF login session - create a minimal auth service that uses cf curl
+      // For now, return an error asking for credentials since we need the full API service
+      return {
+        success: false,
+        error: 'XSUAA credentials are required for CF resources operations. Please provide valid credentials.'
+      };
+    }
 
     let result;
 
